@@ -16,6 +16,15 @@ class CursesInterface:
         curses.cbreak() #React even when enter key is not pressed
         curses.curs_set(0)
         stdscr.keypad(1)
+        curses.start_color()
+        curses.use_default_colors()
+
+        #setup colors for the app
+        print(curses.can_change_color())
+        curses.init_pair(1, curses.COLOR_WHITE, -1)
+        curses.init_pair(2, curses.COLOR_CYAN, -1)
+        curses.init_pair(3, curses.COLOR_BLUE, -1)
+        curses.init_pair(4, curses.COLOR_RED, -1)
         return stdscr
 
     def quit_curses(self, stdscr):
@@ -65,14 +74,18 @@ class CursesInterface:
             chatwindow.border(0, 0, 0, 0, curses.ACS_TTEE, 0, curses.ACS_BTEE, 0)
         else:
             chatwindow.border(0)
- 
+    
+    #Still Needs line wrapping
     def render_text(self, chatwindow):
         for message in self.input_buffer:
             chatwindow.move(1, 1)
             chatwindow.deleteln()
             (y, x, ymax, xmax, ysize, xsize) = self.get_window_dimensions(chatwindow)
             chatwindow.move(ymax - 3, x + 1)
-            chatwindow.addstr(message[0] + ": " + message[1])
+            if message[2]:
+                chatwindow.addstr(message[0] + ": " + message[1], curses.color_pair(2))
+            else: 
+                chatwindow.addstr(message[0] + ": " + message[1], curses.color_pair(1))
         self.input_buffer = []
 
     def render(self, stdscr, chatwindow, channelwindow=None): 
