@@ -16,11 +16,10 @@ class CursesInterface:
         curses.cbreak() #React even when enter key is not pressed
         curses.curs_set(0)
         stdscr.keypad(1)
+
+        #Do some color initilization
         curses.start_color()
         curses.use_default_colors()
-
-        #setup colors for the app
-        print(curses.can_change_color())
         curses.init_pair(1, curses.COLOR_WHITE, -1)
         curses.init_pair(2, curses.COLOR_CYAN, -1)
         curses.init_pair(3, curses.COLOR_BLUE, -1)
@@ -40,10 +39,13 @@ class CursesInterface:
             chatx = x + 30
             xsize = xmax - chatx
             chatwindow = stdscr.subwin(ysize, xsize, y, chatx)
+            textwindow = stdscr.subwin(3, xsize - 1, ysize - 3, chatx)
             channelwindow = stdscr.subwin(ysize, chatx, y, x)
         else:
             chatwindow = stdscr.subwin(ysize, xsize, y, x)
-        return (chatwindow, channelwindow)
+            textwindow = stdscr.subwin(3, xsize - 2, ysize - 3, 1)
+            channelwindow = None
+        return (chatwindow, textwindow, channelwindow)
 
     #################################
     # Utilities 
@@ -68,12 +70,14 @@ class CursesInterface:
     #################################
 
     
-    def draw_border(self, stdscr, chatwindow, channelwindow=None):
+    def draw_border(self, stdscr, chatwindow, textwindow, channelwindow=None):
         if self.channel_fullsize(stdscr):
             channelwindow.border(0, 0, 0, 0, 0, curses.ACS_TTEE, 0, curses.ACS_BTEE)
-            chatwindow.border(0, 0, 0, 0, curses.ACS_TTEE, 0, curses.ACS_BTEE, 0)
+            chatwindow.border(" ", 0, 0, 0, curses.ACS_HLINE, 0, curses.ACS_HLINE, 0)
+            textwindow.border(0, 0, 0, 0, 0, 0, curses.ACS_BTEE, curses.ACS_BTEE)
         else:
             chatwindow.border(0)
+            textwindow.border(0)
     
     #Still Needs line wrapping
     def render_text(self, chatwindow):
@@ -88,9 +92,9 @@ class CursesInterface:
                 chatwindow.addstr(message[0] + ": " + message[1], curses.color_pair(1))
         self.input_buffer = []
 
-    def render(self, stdscr, chatwindow, channelwindow=None): 
+    def render(self, stdscr, chatwindow, textwindow, channelwindow=None): 
         self.render_text(chatwindow)
-        self.draw_border(stdscr, chatwindow, channelwindow)
+        self.draw_border(stdscr, chatwindow, textwindow, channelwindow)
         stdscr.refresh()
 
     #################################
@@ -111,11 +115,11 @@ class CursesInterface:
     ##################################
     def __init__(self):
         stdscr = self.init_curses()
-        (chatwindow, channelwindow) = self.init_app(stdscr)
+        (chatwindow, textwindow, channelwindow) = self.init_app(stdscr)
         self.add_text(chatwindow, "Hello", "BillyBob", False)
         self.add_text(chatwindow, "Wazzup", "Me", True)
         self.add_text(chatwindow, "Not a Lot", "BillyBob", False)
-        self.render(stdscr, chatwindow, channelwindow)
+        self.render(stdscr, chatwindow, textwindow, channelwindow)
         time.sleep(3)
         self.quit_curses(stdscr)
 
